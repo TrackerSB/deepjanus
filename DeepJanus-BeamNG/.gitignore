@@ -1,0 +1,9 @@
+vehicle_state_log.csv
+*__pycache__*
+tig.log
+tig/
+venv*
+.idea/
+udacity_integration/training_recordings
+.DS_Store
+experiments/images

@@ -1,0 +1,56 @@
+from itertools import permutations
+from typing import List, Tuple
+import logging as log
+
+from core.archive import Archive
+from core.individual import Individual
+from core.misc import closest_elements
+
+
+class GreedyArchive(Archive):
+    def process_population(self, pop: List[Individual]):
+        for candidate in pop:
+            if candidate.oob_ff < 0:
+                self.add(candidate)
+
+
+class SmartArchive(Archive):
+    def __init__(self, ARCHIVE_THRESHOLD):
+        super().__init__()
+        self.ARCHIVE_THRESHOLD = ARCHIVE_THRESHOLD
+
+    def process_population(self, pop: List[Individual]):
+        for candidate in pop:
+            assert candidate.oob_ff, candidate.name
+            if candidate.oob_ff < 0:
+                if len(self) == 0:
+                    self._int_add(candidate)
+                    log.debug('add initial individual')
+                else:
+                    # uses semantic_distance to exploit behavioral information
+                    closest_archived, candidate_archived_distance = \
+                        closest_elements(self, candidate, lambda a, b: a.semantic_distance(b))[0]
+                    closest_archived: Individual
+
+                    if candidate_archived_distance > self.ARCHIVE_THRESHOLD:
+                        log.debug('candidate is far from any archived individual')
+                        self._int_add(candidate)
+                    else:
+                        log.debug('candidate is very close to an archived individual')
+                        if candidate.members_distance < closest_archived.members_distance:
+                            log.debug('candidate is better than archived')
+                            self._int_add(candidate)
+                            self.remove(closest_archived)
+                            print('archive rem', closest_archived)
+                        else:
+                            log.debug('archived is better than candidate')
+
+    def _int_add(self, candidate):
+        self.add(candidate)
+        print('archive add', candidate)
+
+    def get_covered_seeds(self):
+        seeds = set()
+        for ind in self:
+            seeds.add(ind.seed.name)
+        return seeds
