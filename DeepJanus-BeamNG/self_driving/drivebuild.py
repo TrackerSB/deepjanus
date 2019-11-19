@@ -30,32 +30,32 @@ class AI:
             sim_state = self._service.wait_for_simulator_request(sid, vid)
             dynamic_callback()
             if sim_state == SimStateResponse.SimState.RUNNING:
+                data = self._service.request_data(sid, vid, request).data
                 # Request camera image
-                byte_im = self._service.request_data(sid, vid, request).data["center_cam"].camera.color
-                image = Image.open(io.BytesIO(byte_im))
-                image.convert("RGB")
+                byte_im = data["center_cam"].camera.color
+                image = Image.open(io.BytesIO(byte_im)).convert("RGB")
 
                 # Determine last state
                 # is_oob, oob_counter, max_oob_percentage, oob_distance = self._oob_monitor.get_oob_info(oob_bb=False, wrt="right")
                 is_oob = False
                 oob_counter = max_oob_percentage = oob_distance = None
-                car_state = {"timer": None,
-                             "damage": None,
-                             "pos": None,
-                             "dir": None,
-                             "vel": None,
-                             "gforces": None,
-                             "gforces2": None,
-                             "steering": None,
-                             "steering_input": None,
-                             "brake": None,
-                             "brake_input": None,
-                             "throttle": None,
-                             "throttle_input": None,
-                             "throttleFactor": None,
-                             "engineThrottle": None,
-                             "wheelspeed": None,
-                             "vel_kmh": None
+                car_state = {"timer": 0,
+                             "damage": 0,
+                             "pos": 0,
+                             "dir": 0,
+                             "vel": 0,
+                             "gforces": 0,
+                             "gforces2": 0,
+                             "steering": 0,
+                             "steering_input": 0,
+                             "brake": 0,
+                             "brake_input": 0,
+                             "throttle": 0,
+                             "throttle_input": 0,
+                             "throttleFactor": 0,
+                             "engineThrottle": 0,
+                             "wheelspeed": 0,
+                             "vel_kmh": data["ego_speed"].speed.speed
                              }
                 sim_data_record = SimulationDataRecord(**car_state,
                                                        is_oob=is_oob,
@@ -86,3 +86,6 @@ class AI:
         camera.set("height", "160")
         camera.set("fov", "120")
         ai_tag.append(camera)
+        speed = Element("speed")
+        speed.set("id", "ego_speed")
+        ai_tag.append(speed)
