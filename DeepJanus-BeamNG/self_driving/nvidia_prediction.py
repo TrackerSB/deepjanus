@@ -1,8 +1,12 @@
+from logging import getLogger
+
 import numpy as np
 
 from core.config import Config
 from self_driving.simulation_data import SimulationDataRecord
 from udacity_integration.udacity_utils import preprocess
+
+_logger = getLogger("DeepJanus.NvidiaPrediction")
 
 
 class NvidiaPrediction:
@@ -28,5 +32,5 @@ class NvidiaPrediction:
             throttle = 1.0 - steering_angle ** 2 - (speed / self.speed_limit) ** 2
             return steering_angle, throttle
 
-        except Exception as e:
-            print(e)
+        except Exception:
+            _logger.exception("Prediction failed")
